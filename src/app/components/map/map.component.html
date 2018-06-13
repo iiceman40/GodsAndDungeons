@@ -1,0 +1,47 @@
+<h2>Dungeon</h2>
+<button (click)="enter()" *ngIf="canEnter() && !!currentTile === false">Enter</button>
+<div *ngIf="!!currentTile === true">
+
+	<!--<h3>Position</h3>-->
+	<!--level: {{currentTile.level}}<br/>-->
+	<!--x: {{currentTile.x}}<br/>-->
+	<!--y: {{currentTile.y}}-->
+
+	<div class="movement-controls">
+		<button *ngFor="let exit of currentTile.exits"
+		        [ngClass]="'go-' + exit"
+		        (click)="goTroughExit(exit)">
+			Go {{exit}}
+		</button>
+	</div>
+
+	<h3>Dungeon</h3>
+	<button (click)="zoomIn()">Zoom in</button>
+	<button (click)="zoomOut()">Zoom out</button>
+	<br />
+	<ng-container *ngIf="dungeonService.dungeon | async as dungeon;">
+		<div class="map" [ngStyle]="{width: gridSize * dungeon.maxSize.x + 'px', height: gridSize * dungeon.maxSize.y + 'px'}">
+			<div *ngFor="let row of getObjectAsArray(dungeon.map[currentTile.level]); let rowIndex = index">
+				<ng-container *ngFor="let tile of getObjectAsArray(dungeon.map[currentTile.level][rowIndex])">
+					<div class="tile"
+					      [ngClass]="{
+					          'active': tile.x === currentTile.x && tile.y === currentTile.y,
+					          'exit-left': hasExitLeft(tile),
+					          'exit-right': hasExitRight(tile),
+					          'exit-up': hasExitUp(tile),
+					          'exit-down': hasExitDown(tile)
+					      }"
+					      [ngStyle]="{
+					          'top': tile.y * (gridSize + 4) + 'px',
+					          'left': tile.x * (gridSize + 4) + 'px',
+					          'width': gridSize + 'px',
+					          'height': gridSize + 'px'
+					      }">
+						{{tile.x}}
+						{{tile.y}}
+					</div>
+				</ng-container>
+			</div>
+		</div>
+	</ng-container>
+</div>

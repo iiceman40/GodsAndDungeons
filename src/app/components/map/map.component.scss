@@ -1,0 +1,62 @@
+.map {
+	position: relative;
+	background: #777777;
+}
+.tile {
+	display: block;
+	position: absolute;
+	border: 2px solid saddlebrown;
+	background: #ffffff;
+
+	&.active {
+		background: lightblue;
+	}
+
+	&.exit-left {
+		border-left: 2px dashed #dedede;
+	}
+	&.exit-right {
+		border-right: 2px dashed #dedede;
+	}
+	&.exit-up {
+		border-top: 2px dashed #dedede;
+	}
+	&.exit-down {
+		border-bottom: 2px dashed #dedede;
+	}
+}
+.movement-controls {
+	position: fixed;
+	bottom: 15px;
+	left: 15px;
+	z-index: 100;
+	height: 120px;
+	width: 180px;
+	background: slategray;
+
+	button {
+		position: absolute;
+		height: 60px;
+		width: 60px;
+	}
+
+	.go-left {
+		left: 0;
+		top: 60px;
+	}
+
+	.go-right {
+		left: 120px;
+		top: 60px;
+	}
+
+	.go-up {
+		left: 60px;
+		top: 0;
+	}
+
+	.go-down {
+		left: 60px;
+		top: 60px;
+	}
+}

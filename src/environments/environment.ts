@@ -3,7 +3,17 @@
 // The list of file replacements can be found in `angular.json`.
 
 export const environment = {
-  production: false
+	production: false,
+	firebase: {
+		config: {
+			apiKey: 'AIzaSyAjUZ_BQ_k--S88qTnOIDJ9p9ODWoD-wGs',
+			authDomain: 'godsanddungeons.firebaseapp.com',
+			databaseURL: 'https://godsanddungeons.firebaseio.com',
+			projectId: 'godsanddungeons',
+			storageBucket: 'godsanddungeons.appspot.com',
+			messagingSenderId: '255463446968'
+		}
+	}
 };
 
 /*
