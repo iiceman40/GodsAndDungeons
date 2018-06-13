@@ -15,7 +15,6 @@
 		</button>
 	</div>
 
-	<h3>Dungeon</h3>
 	<button (click)="zoomIn()">Zoom in</button>
 	<button (click)="zoomOut()">Zoom out</button>
 	<br />
@@ -32,13 +31,11 @@
 					          'exit-down': hasExitDown(tile)
 					      }"
 					      [ngStyle]="{
-					          'top': tile.y * (gridSize + 4) + 'px',
-					          'left': tile.x * (gridSize + 4) + 'px',
+					          'top': tile.y * (gridSize + 6) + 'px',
+					          'left': tile.x * (gridSize + 6) + 'px',
 					          'width': gridSize + 'px',
 					          'height': gridSize + 'px'
 					      }">
-						{{tile.x}}
-						{{tile.y}}
 					</div>
 				</ng-container>
 			</div>
