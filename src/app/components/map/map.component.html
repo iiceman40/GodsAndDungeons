@@ -19,7 +19,11 @@
 	<button (click)="zoomOut()">Zoom out</button>
 	<br />
 	<ng-container *ngIf="dungeonService.dungeon | async as dungeon;">
-		<div class="map" [ngStyle]="{width: gridSize * dungeon.maxSize.x + 'px', height: gridSize * dungeon.maxSize.y + 'px'}">
+		<div class="map"
+			 [ngStyle]="{
+			     width: (gridSize + 6) * dungeon.maxSize.x + 'px',
+			     height: (gridSize + 6) * dungeon.maxSize.y + 'px'
+			 }">
 			<div *ngFor="let row of getObjectAsArray(dungeon.map[currentTile.level]); let rowIndex = index">
 				<ng-container *ngFor="let tile of getObjectAsArray(dungeon.map[currentTile.level][rowIndex])">
 					<div class="tile"
