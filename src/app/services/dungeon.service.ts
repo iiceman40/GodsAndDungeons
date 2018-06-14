@@ -60,6 +60,9 @@ export class DungeonService {
 		}
 		this.dungeon.next(dungeon);
 
+		this._db.doc(`dungeon-${this.dungeonId}-tiles/tile-${level}-${x}-${y}`).set(dungeon.map[level][y][x]);
+
+		// TODO do not update dungeon itself anymore but get the tile information from the tiles collection
 		if (dungeon !== null) {
 			const dbDungeon = this._db.collection('dungeons').doc(this.dungeonId);
 			if (this.dungeon.getValue() !== null) {
