@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, HostListener, OnInit} from '@angular/core';
 import {AngularFireAuth} from 'angularfire2/auth';
 import {DungeonService} from '../../services/dungeon.service';
 
@@ -19,12 +19,28 @@ export class MapComponent implements OnInit {
 
 	ngOnInit() {
 		// TODO init player position
+	}
 
-		this.dungeonService.dungeon.subscribe(dungeon => {
-			if (dungeon && Object.keys(dungeon.map).length === 0) {
-				this.currentTile = null;
-			}
-		});
+	@HostListener('window:keydown', ['$event'])
+	keyboardInput(event: KeyboardEvent) {
+		switch (event.key) {
+			case 'ArrowUp':
+				event.preventDefault();
+				this.goTroughExit(DungeonService.EXITS_UP);
+				break;
+			case 'ArrowDown':
+				event.preventDefault();
+				this.goTroughExit(DungeonService.EXITS_DOWN);
+				break;
+			case 'ArrowLeft':
+				event.preventDefault();
+				this.goTroughExit(DungeonService.EXITS_LEFT);
+				break;
+			case 'ArrowRight':
+				event.preventDefault();
+				this.goTroughExit(DungeonService.EXITS_RIGHT);
+				break;
+		}
 	}
 
 	enter() {
@@ -46,6 +62,9 @@ export class MapComponent implements OnInit {
 	}
 
 	goTroughExit(exit: string) {
+		if (!!this.currentTile === false || this.currentTile.exits.indexOf(exit) === -1) {
+			return;
+		}
 		switch (exit) {
 			case 'left':
 				this.goToTile(this.currentTile.level, this.currentTile.x - 1, this.currentTile.y);
