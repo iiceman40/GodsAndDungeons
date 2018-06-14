@@ -16,10 +16,10 @@ export class DungeonService {
 	dungeonId: string;
 	dungeon: BehaviorSubject<Dungeon> = new BehaviorSubject(null);
 
-	constructor(db: AngularFirestore) {
+	constructor(private _db: AngularFirestore) {
 		let currentlyActiveDungeon = null;
 		let currentlyActiveDungeonId = null;
-		db.collection('dungeons').snapshotChanges().subscribe(changes => {
+		_db.collection('dungeons').snapshotChanges().subscribe(changes => {
 			changes.forEach(change => {
 				const dungeonId = change.payload.doc.id;
 				const dungeon = <Dungeon>change.payload.doc.data();
@@ -35,14 +35,6 @@ export class DungeonService {
 			console.log(this.dungeonId, this.dungeon.getValue());
 		});
 
-		this.dungeon.subscribe(dungeon => {
-			if (dungeon !== null) {
-				const dbDungeon = db.collection('dungeons').doc(this.dungeonId);
-				if (this.dungeon.getValue() !== null) {
-					dbDungeon.ref.update(dungeon);
-				}
-			}
-		});
 	}
 
 	generateTile(level: number, x: number, y: number) {
@@ -67,6 +59,14 @@ export class DungeonService {
 			}
 		}
 		this.dungeon.next(dungeon);
+
+		if (dungeon !== null) {
+			const dbDungeon = this._db.collection('dungeons').doc(this.dungeonId);
+			if (this.dungeon.getValue() !== null) {
+				dbDungeon.ref.update(dungeon);
+			}
+		}
+
 		return dungeon.map[level][y][x];
 	}
 
