@@ -1,3 +1,5 @@
 <h1>Gods And Dungeons</h1>
 <app-login></app-login>
-<app-map></app-map>
+<div *ngIf="afAuth.user | async as user;">
+	<app-map></app-map>
+</div>

@@ -12,7 +12,9 @@ export class MapComponent implements OnInit {
 	currentTile: { level: number, x: number, y: number, monsters: {}[], exits: string[] } = null;
 	gridSize = 50;
 
-	constructor(public afAuth: AngularFireAuth, public dungeonService: DungeonService) {
+	constructor(
+		public afAuth: AngularFireAuth,
+		public dungeonService: DungeonService) {
 	}
 
 	ngOnInit() {
