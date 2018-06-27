@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {BehaviorSubject, Observable} from 'rxjs';
+import {BehaviorSubject} from 'rxjs';
 import {AngularFirestore} from 'angularfire2/firestore';
 import {Dungeon} from '../interfaces/dungeon';
 
@@ -15,6 +15,7 @@ export class DungeonService {
 
 	dungeonId: string;
 	dungeon: BehaviorSubject<Dungeon> = new BehaviorSubject(null);
+	map: {} = {};
 
 	constructor(private _db: AngularFirestore) {
 		let currentlyActiveDungeon = null;
@@ -23,67 +24,47 @@ export class DungeonService {
 			changes.forEach(change => {
 				const dungeonId = change.payload.doc.id;
 				const dungeon = <Dungeon>change.payload.doc.data();
-				console.log('change id', dungeonId);
-				console.log('change data', dungeon);
 				if (dungeon.state === 1) {
 					currentlyActiveDungeon = dungeon;
 					currentlyActiveDungeonId = dungeonId;
+					_db.collection(`dungeon-${dungeonId}-tiles`).snapshotChanges().subscribe(snapshotChanges => {
+						if (console && console.log) {
+							console.log(snapshotChanges);
+						}
+						snapshotChanges.forEach(snapshotChange => {
+							this.map[snapshotChange.payload.doc.id] = snapshotChange.payload.doc.data();
+						});
+					});
 				}
 			});
 			this.dungeonId = currentlyActiveDungeonId;
 			this.dungeon.next(currentlyActiveDungeon);
 			console.log(this.dungeonId, this.dungeon.getValue());
 		});
-
 	}
 
 	generateTile(level: number, x: number, y: number) {
-		const dungeon = this.dungeon.getValue();
-		if (dungeon !== null) {
-			if (!!dungeon.map[level] === false) {
-				dungeon.map[level] = {};
-			}
-			if (!!dungeon.map[level][y] === false) {
-				dungeon.map[level][y] = {};
-			}
-			if (!!dungeon.map[level][y][x] === false) {
-				dungeon.map[level][y][x] = {
-					level: level,
-					x: x,
-					y: y,
-					monsters: [],
-					exits: []
-				};
-				this._generateEntries(dungeon.map[level][y][x]);
-				this._generateExits(dungeon.map[level][y][x]);
-			}
-		}
-		this.dungeon.next(dungeon);
+		let tile = null;
 
-		if (dungeon !== null) {
-			const dbDungeon = this._db.collection('dungeons').doc(this.dungeonId);
-			if (this.dungeon.getValue() !== null) {
-				dbDungeon.ref.update(dungeon);
-			}
+		if (this.map.hasOwnProperty(`tile-${level}-${x}-${y}`) === false) {
+			tile = {
+				level: level,
+				x: x,
+				y: y,
+				monsters: [],
+				exits: []
+			};
+			this._generateEntries(tile);
+			this._generateExits(tile);
+			this._db.doc(`dungeon-${this.dungeonId}-tiles/tile-${level}-${x}-${y}`).set(tile);
 		}
 
-		return dungeon.map[level][y][x];
+		return tile;
 	}
 
 	getTile(level: number, x: number, y: number) {
-		const dungeon = this.dungeon.getValue();
-		if (dungeon !== null) {
-			if (!!dungeon.map[level] === false) {
-				return null;
-			}
-			if (!!dungeon.map[level][y] === false) {
-				return null;
-			}
-			if (!!dungeon.map[level][y][x] === true) {
-				return dungeon.map[level][y][x];
-			}
-		}
-		return null;
+		return this.map.hasOwnProperty(`tile-${level}-${x}-${y}`) ?
+			this.map[`tile-${level}-${x}-${y}`] : null;
 	}
 
 	private _generateExits(tile) {
