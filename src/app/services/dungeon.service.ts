@@ -27,14 +27,7 @@ export class DungeonService {
 				if (dungeon.state === 1) {
 					currentlyActiveDungeon = dungeon;
 					currentlyActiveDungeonId = dungeonId;
-					_db.collection(`dungeon-${dungeonId}-tiles`).snapshotChanges().subscribe(snapshotChanges => {
-						if (console && console.log) {
-							console.log(snapshotChanges);
-						}
-						snapshotChanges.forEach(snapshotChange => {
-							this.map[snapshotChange.payload.doc.id] = snapshotChange.payload.doc.data();
-						});
-					});
+					this.map = dungeon.map;
 				}
 			});
 			this.dungeonId = currentlyActiveDungeonId;
@@ -44,27 +37,52 @@ export class DungeonService {
 	}
 
 	generateTile(level: number, x: number, y: number) {
-		let tile = null;
+		const dungeon = this.dungeon.getValue();
+		if (dungeon !== null) {
+			if (!!dungeon.map[level] === false) {
+				dungeon.map[level] = {};
+			}
+			if (!!dungeon.map[level][y] === false) {
+				dungeon.map[level][y] = {};
+			}
+			if (!!dungeon.map[level][y][x] === false) {
+				dungeon.map[level][y][x] = {
+					level: level,
+					x: x,
+					y: y,
+					monsters: [],
+					exits: []
+				};
+				this._generateEntries(dungeon.map[level][y][x]);
+				this._generateExits(dungeon.map[level][y][x]);
+			}
+		}
+		this.dungeon.next(dungeon);
 
-		if (this.map.hasOwnProperty(`tile-${level}-${x}-${y}`) === false) {
-			tile = {
-				level: level,
-				x: x,
-				y: y,
-				monsters: [],
-				exits: []
-			};
-			this._generateEntries(tile);
-			this._generateExits(tile);
-			this._db.doc(`dungeon-${this.dungeonId}-tiles/tile-${level}-${x}-${y}`).set(tile);
+		if (dungeon !== null) {
+			const dbDungeon = this._db.collection('dungeons').doc(this.dungeonId);
+			if (this.dungeon.getValue() !== null) {
+				dbDungeon.ref.update(dungeon);
+			}
 		}
 
-		return tile;
+		return dungeon.map[level][y][x];
 	}
 
 	getTile(level: number, x: number, y: number) {
-		return this.map.hasOwnProperty(`tile-${level}-${x}-${y}`) ?
-			this.map[`tile-${level}-${x}-${y}`] : null;
+		const dungeon = this.dungeon.getValue();
+		if (dungeon !== null) {
+			if (!!dungeon.map[level] === false) {
+				return null;
+			}
+			if (!!dungeon.map[level][y] === false) {
+				return null;
+			}
+			if (!!dungeon.map[level][y][x] === true) {
+				return dungeon.map[level][y][x];
+			}
+		}
+		return null;
 	}
 
 	private _generateExits(tile) {

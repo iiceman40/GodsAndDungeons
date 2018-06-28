@@ -20,11 +20,6 @@ export class MapComponent implements OnInit {
 	ngOnInit() {
 		// TODO init player position
 
-		// this.dungeonService.dungeon.subscribe(dungeon => {
-		// 	if (dungeon && Object.keys(dungeon.map).length === 0) {
-		// 		this.currentTile = null;
-		// 	}
-		// });
 	}
 
 	@HostListener('window:keydown', ['$event'])
@@ -59,6 +54,16 @@ export class MapComponent implements OnInit {
 		if (!!currentTile === false) {
 			currentTile = this.dungeonService.generateTile(level, x, y);
 		}
+
+		// TODO check for monsters on this tile
+		if (currentTile.monsters.length > 0) {
+			currentTile.monsters.forEach(monster => {
+				monster.type.get().then(monsterType => {
+					console.log(monsterType.id, monsterType.data());
+				});
+			});
+		}
+
 		this.currentTile = currentTile;
 		// TODO update player position
 	}
