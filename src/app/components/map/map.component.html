@@ -1,6 +1,10 @@
 <h2>Dungeon</h2>
 <button (click)="enter()" *ngIf="canEnter() && !!currentTile === false">Enter</button>
 <div *ngIf="!!currentTile === true">
+	<div *ngFor="let monster of currentMonsters">
+		{{monster.resolvedType.name}} - HP: {{monster.resolvedType.maxHP}} {{monster.status}}
+		<button (click)="attack(monster)" *ngIf="monster.status !== 'dead'">ATTACK!</button>
+	</div>
 
 	<!--<h3>Position</h3>-->
 	<!--level: {{currentTile.level}}<br/>-->

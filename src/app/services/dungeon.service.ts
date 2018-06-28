@@ -58,13 +58,7 @@ export class DungeonService {
 			}
 		}
 		this.dungeon.next(dungeon);
-
-		if (dungeon !== null) {
-			const dbDungeon = this._db.collection('dungeons').doc(this.dungeonId);
-			if (this.dungeon.getValue() !== null) {
-				dbDungeon.ref.update(dungeon);
-			}
-		}
+		this.updateDungeon();
 
 		return dungeon.map[level][y][x];
 	}
@@ -152,6 +146,16 @@ export class DungeonService {
 			const neighborTile = this.getTile(tile.level, tile.x, tile.y - 1);
 			if (neighborTile.exits.indexOf(DungeonService.EXITS_DOWN) !== -1) {
 				tile.exits.push(DungeonService.EXITS_UP);
+			}
+		}
+	}
+
+	public updateDungeon() {
+		const dungeon = this.dungeon.getValue();
+		if (dungeon !== null) {
+			const dbDungeon = this._db.collection('dungeons').doc(this.dungeonId);
+			if (this.dungeon.getValue() !== null) {
+				dbDungeon.ref.update(dungeon);
 			}
 		}
 	}
