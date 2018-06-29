@@ -1,27 +1,36 @@
 <h2>Dungeon</h2>
 <button (click)="enter()" *ngIf="canEnter() && !!currentTile === false">Enter</button>
 <div *ngIf="!!currentTile === true">
-	<div *ngFor="let monster of currentMonsters">
-		{{monster.resolvedType.name}} - HP: {{monster.resolvedType.maxHP}} {{monster.status}}
-		<button (click)="attack(monster)" *ngIf="monster.status !== 'dead'">ATTACK!</button>
-	</div>
 
-	<!--<h3>Position</h3>-->
-	<!--level: {{currentTile.level}}<br/>-->
-	<!--x: {{currentTile.x}}<br/>-->
-	<!--y: {{currentTile.y}}-->
+	<div style="margin-bottom: 15px;">
+		<div style="display: inline-block; vertical-align: top; margin-right: 15px;">
+			<h3 style="margin-top: 0;">Position</h3>
+			level: {{currentTile.level}}<br/>
+			x: {{currentTile.x}}<br/>
+			y: {{currentTile.y}}<br/>
+			moveCooldown: {{moveCoolDown/100}}
+		</div>
+
+		<div style="display: inline-block; vertical-align: top; margin-right: 15px;" *ngIf="currentMonsters.length">
+			<h3 style="margin-top: 0;">Monsters</h3>
+			<div *ngFor="let monster of currentMonsters">
+				{{monster.resolvedType.name}} - HP: {{monster.resolvedType.maxHP}} {{monster.status}}
+				<button (click)="attack(monster)" *ngIf="monster.status !== 'dead'">ATTACK!</button>
+			</div>
+		</div>
+	</div>
 
 	<div class="movement-controls">
 		<button *ngFor="let exit of currentTile.exits"
-		        [ngClass]="'go-' + exit"
-		        (click)="goTroughExit(exit)">
+				[ngClass]="'go-' + exit"
+				(click)="goTroughExit(exit)">
 			Go {{exit}}
 		</button>
 	</div>
 
 	<button (click)="zoomIn()">Zoom in</button>
 	<button (click)="zoomOut()">Zoom out</button>
-	<br />
+	<br/>
 	<ng-container *ngIf="dungeonService.dungeon | async as dungeon;">
 		<div class="map"
 			 [ngStyle]="{
@@ -31,14 +40,14 @@
 			<div *ngFor="let row of getObjectAsArray(dungeon.map[currentTile.level]); let rowIndex = index">
 				<ng-container *ngFor="let tile of getObjectAsArray(dungeon.map[currentTile.level][rowIndex])">
 					<div class="tile"
-					      [ngClass]="{
+						 [ngClass]="{
 					          'active': tile.x === currentTile.x && tile.y === currentTile.y,
 					          'exit-left': hasExitLeft(tile),
 					          'exit-right': hasExitRight(tile),
 					          'exit-up': hasExitUp(tile),
 					          'exit-down': hasExitDown(tile)
 					      }"
-					      [ngStyle]="{
+						 [ngStyle]="{
 					          'top': tile.y * (gridSize + 6) + 'px',
 					          'left': tile.x * (gridSize + 6) + 'px',
 					          'width': gridSize + 'px',

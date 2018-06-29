@@ -10,9 +10,15 @@ import {DocumentReference} from 'angularfire2/firestore';
 })
 export class MapComponent implements OnInit {
 
+	private static readonly MOVE_COOL_DOWN_VALUE = 500;
+	private static readonly MOVE_COOL_DOWN_INTERVAL = 100;
+
 	currentTile: { level: number, x: number, y: number, monsters: {}[], exits: string[] } = null;
-	currentMonsters: { resolvedType: { name: string, maxHP: number }, type: DocumentReference, status?: string}[];
+	currentMonsters: { resolvedType: { name: string, maxHP: number }, type: DocumentReference, status?: string }[];
 	gridSize = 50;
+	moveCoolDown = 0;
+
+	private _moveTimeout: number;
 
 	constructor(
 		public afAuth: AngularFireAuth,
@@ -52,6 +58,10 @@ export class MapComponent implements OnInit {
 	}
 
 	goToTile(level, x, y) {
+		if (this.moveCoolDown > 0) {
+			return;
+		}
+
 		let currentTile = this.dungeonService.getTile(level, x, y);
 		if (!!currentTile === false) {
 			currentTile = this.dungeonService.generateTile(level, x, y);
@@ -70,6 +80,16 @@ export class MapComponent implements OnInit {
 		this.currentMonsters = currentMonsters;
 
 		this.currentTile = currentTile;
+
+		// move cool down
+		this.moveCoolDown = MapComponent.MOVE_COOL_DOWN_VALUE;
+		this._moveTimeout = setInterval(() => {
+			this.moveCoolDown = Math.max(this.moveCoolDown - MapComponent.MOVE_COOL_DOWN_INTERVAL, 0);
+			if (this.moveCoolDown === 0) {
+				clearInterval(this._moveTimeout);
+			}
+		}, MapComponent.MOVE_COOL_DOWN_INTERVAL);
+
 		// TODO update player position
 	}
 
@@ -133,7 +153,7 @@ export class MapComponent implements OnInit {
 		return tile.exits.indexOf(DungeonService.EXITS_DOWN) !== -1;
 	}
 
-	attack(monster: { resolvedType: { name: string, maxHP: number }, type: DocumentReference, status?: string}) {
+	attack(monster: { resolvedType: { name: string, maxHP: number }, type: DocumentReference, status?: string }) {
 		const newData = monster.resolvedType;
 		newData.maxHP -= 5;
 		if (newData.maxHP <= 0) {
