@@ -11,19 +11,20 @@
 			moveCooldown: {{moveCoolDown/100}}
 		</div>
 
-		<div style="display: inline-block; vertical-align: top; margin-right: 15px;" *ngIf="currentMonsters.length">
+		<div style="display: inline-block; vertical-align: top; margin-right: 15px;" *ngIf="currentTile.monsters.length">
 			<h3 style="margin-top: 0;">Monsters</h3>
-			<div *ngFor="let monster of currentMonsters">
-				{{monster.resolvedType.name}} - HP: {{monster.resolvedType.maxHP}} {{monster.status}}
-				<button (click)="attack(monster)" *ngIf="monster.status !== 'dead'">ATTACK!</button>
+			<div *ngFor="let monster of currentTile.monsters">
+				{{monster.type.name}} - HP: {{monster.hp}} / {{monster.type.maxHP}}
+				<span *ngIf="monster.status === 0">(dead)</span>
+				<button (click)="attack(monster)" *ngIf="monster.status > 0">ATTACK!</button>
 			</div>
 		</div>
 	</div>
 
 	<div class="movement-controls">
 		<button *ngFor="let exit of currentTile.exits"
-				[ngClass]="'go-' + exit"
-				(click)="goTroughExit(exit)">
+		        [ngClass]="'go-' + exit"
+		        (click)="goTroughExit(exit)">
 			Go {{exit}}
 		</button>
 	</div>
@@ -31,23 +32,24 @@
 	<button (click)="zoomIn()">Zoom in</button>
 	<button (click)="zoomOut()">Zoom out</button>
 	<br/>
+	{{playerService.players | async}}
 	<ng-container *ngIf="dungeonService.dungeon | async as dungeon;">
 		<div class="map"
-			 [ngStyle]="{
+		     [ngStyle]="{
 			     width: (gridSize + 6) * dungeon.maxSize.x + 'px',
 			     height: (gridSize + 6) * dungeon.maxSize.y + 'px'
 			 }">
 			<div *ngFor="let row of getObjectAsArray(dungeon.map[currentTile.level]); let rowIndex = index">
 				<ng-container *ngFor="let tile of getObjectAsArray(dungeon.map[currentTile.level][rowIndex])">
 					<div class="tile"
-						 [ngClass]="{
+					     [ngClass]="{
 					          'active': tile.x === currentTile.x && tile.y === currentTile.y,
 					          'exit-left': hasExitLeft(tile),
 					          'exit-right': hasExitRight(tile),
 					          'exit-up': hasExitUp(tile),
 					          'exit-down': hasExitDown(tile)
 					      }"
-						 [ngStyle]="{
+					     [ngStyle]="{
 					          'top': tile.y * (gridSize + 6) + 'px',
 					          'left': tile.x * (gridSize + 6) + 'px',
 					          'width': gridSize + 'px',
@@ -56,6 +58,16 @@
 					</div>
 				</ng-container>
 			</div>
+			<ng-container *ngFor="let player of playerService.players">
+				<div class="player" [ngStyle]="{
+					          'top': player.y * (gridSize + 6) + 'px',
+					          'left': player.x * (gridSize + 6) + 'px',
+					          'width': gridSize + 'px',
+					          'height': gridSize + 'px'
+					      }">
+					{{player.name}}
+				</div>
+			</ng-container>
 		</div>
 	</ng-container>
 </div>

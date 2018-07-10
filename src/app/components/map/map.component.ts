@@ -1,7 +1,10 @@
 import {Component, HostListener, OnInit} from '@angular/core';
 import {AngularFireAuth} from 'angularfire2/auth';
 import {DungeonService} from '../../services/dungeon.service';
-import {DocumentReference} from 'angularfire2/firestore';
+import {PlayerService} from '../../services/player.service';
+import {MonsterService} from '../../services/monster.service';
+import {Monster} from '../../interfaces/monster';
+import {Tile} from '../../interfaces/tile';
 
 @Component({
 	selector: 'app-map',
@@ -13,8 +16,7 @@ export class MapComponent implements OnInit {
 	private static readonly MOVE_COOL_DOWN_VALUE = 500;
 	private static readonly MOVE_COOL_DOWN_INTERVAL = 100;
 
-	currentTile: { level: number, x: number, y: number, monsters: {}[], exits: string[] } = null;
-	currentMonsters: { resolvedType: { name: string, maxHP: number }, type: DocumentReference, status?: string }[];
+	currentTile: Tile = null;
 	gridSize = 50;
 	moveCoolDown = 0;
 
@@ -22,12 +24,12 @@ export class MapComponent implements OnInit {
 
 	constructor(
 		public afAuth: AngularFireAuth,
-		public dungeonService: DungeonService) {
+		public dungeonService: DungeonService,
+		public playerService: PlayerService) {
 	}
 
 	ngOnInit() {
-		// TODO init player position
-
+		this.playerService.initPlayers();
 	}
 
 	@HostListener('window:keydown', ['$event'])
@@ -57,29 +59,20 @@ export class MapComponent implements OnInit {
 		this.goToTile(entry.level, entry.x, entry.y);
 	}
 
-	goToTile(level, x, y) {
+	async goToTile(level, x, y) {
 		if (this.moveCoolDown > 0) {
 			return;
 		}
 
 		let currentTile = this.dungeonService.getTile(level, x, y);
 		if (!!currentTile === false) {
-			currentTile = this.dungeonService.generateTile(level, x, y);
+			const entry = this.dungeonService.dungeon.getValue().entry;
+			const preventMonsterSpawning = entry.x === x && entry.y === y;
+			currentTile = await this.dungeonService.generateTile(level, x, y, preventMonsterSpawning);
 		}
-
-		// TODO check for monsters on this tile
-		const currentMonsters = [];
-		if (currentTile.monsters.length > 0) {
-			currentTile.monsters.forEach(monster => {
-				monster.type.get().then(monsterType => {
-					console.log(monsterType.id, monsterType.data());
-					this.currentMonsters.push({...monster, ...{resolvedType: monsterType.data()}});
-				});
-			});
-		}
-		this.currentMonsters = currentMonsters;
 
 		this.currentTile = currentTile;
+		this.playerService.updatePlayerPosition(currentTile);
 
 		// move cool down
 		this.moveCoolDown = MapComponent.MOVE_COOL_DOWN_VALUE;
@@ -90,7 +83,6 @@ export class MapComponent implements OnInit {
 			}
 		}, MapComponent.MOVE_COOL_DOWN_INTERVAL);
 
-		// TODO update player position
 	}
 
 
@@ -153,22 +145,13 @@ export class MapComponent implements OnInit {
 		return tile.exits.indexOf(DungeonService.EXITS_DOWN) !== -1;
 	}
 
-	attack(monster: { resolvedType: { name: string, maxHP: number }, type: DocumentReference, status?: string }) {
-		const newData = monster.resolvedType;
-		newData.maxHP -= 5;
-		if (newData.maxHP <= 0) {
-			// monster.type.delete().then(result => {
-			// 	console.log('delete complete', result);
-			// });
-			monster.status = 'dead';
-		}
-		monster.type.set(newData).then(result => {
-			console.log('done setting monster data', result);
-		});
+	attack(monster: Monster) {
+		monster.hp = Math.max(0, monster.hp - 10);
 
-		// const newMaxHP = monster.resolvedType.maxHP + 10;
-		// monster.type.update('maxHP', newMaxHP).then(result => {
-		// 	monster.resolvedType.maxHP = newMaxHP;
-		// });
+		if (monster.hp === 0) {
+			monster.status = MonsterService.MONSTER_STATUS_DEAD;
+		}
+
+		this.dungeonService.updateDungeon();
 	}
 }

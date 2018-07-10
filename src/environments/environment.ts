@@ -13,7 +13,8 @@ export const environment = {
 			storageBucket: 'godsanddungeons.appspot.com',
 			messagingSenderId: '255463446968'
 		}
-	}
+	},
+	dungeonGeneratorUri: 'http://localhost:61624/dungeon'
 };
 
 /*

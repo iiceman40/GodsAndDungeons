@@ -9,7 +9,7 @@
 	background: #ffffff;
 
 	&.active {
-		background: #cecece url("../../../assets/warrior-svgrepo-com.svg") no-repeat;
+		background: green;
 	}
 
 	&.exit-left {
@@ -24,6 +24,11 @@
 	&.exit-down {
 		border-bottom: 3px dashed #dedede;
 	}
+}
+.player {
+	display: block;
+	position: absolute;
+	background: #cecece url("../../../assets/warrior-svgrepo-com.svg") no-repeat;
 }
 .movement-controls {
 	position: fixed;

@@ -1,7 +1,10 @@
 import {Injectable} from '@angular/core';
 import {BehaviorSubject} from 'rxjs';
-import {AngularFirestore} from 'angularfire2/firestore';
+import {AngularFirestore, DocumentReference} from 'angularfire2/firestore';
 import {Dungeon} from '../interfaces/dungeon';
+import {MonsterService} from './monster.service';
+import {HttpClient} from '@angular/common/http';
+import {environment} from '../../environments/environment';
 
 @Injectable({
 	providedIn: 'root'
@@ -17,7 +20,11 @@ export class DungeonService {
 	dungeon: BehaviorSubject<Dungeon> = new BehaviorSubject(null);
 	map: {} = {};
 
-	constructor(private _db: AngularFirestore) {
+	constructor(
+		private _db: AngularFirestore,
+		private _monsterService: MonsterService,
+		private _http: HttpClient
+	) {
 		let currentlyActiveDungeon = null;
 		let currentlyActiveDungeonId = null;
 		_db.collection('dungeons').snapshotChanges().subscribe(changes => {
@@ -33,10 +40,11 @@ export class DungeonService {
 			this.dungeonId = currentlyActiveDungeonId;
 			this.dungeon.next(currentlyActiveDungeon);
 			console.log(this.dungeonId, this.dungeon.getValue());
+
 		});
 	}
 
-	generateTile(level: number, x: number, y: number) {
+	async generateTile(level: number, x: number, y: number, preventMonsterSpawning = false) {
 		const dungeon = this.dungeon.getValue();
 		if (dungeon !== null) {
 			if (!!dungeon.map[level] === false) {
@@ -55,6 +63,9 @@ export class DungeonService {
 				};
 				this._generateEntries(dungeon.map[level][y][x]);
 				this._generateExits(dungeon.map[level][y][x]);
+				if (preventMonsterSpawning === false) {
+					await this._monsterService.generateMonstersAtTile(dungeon.map[level][y][x]);
+				}
 			}
 		}
 		this.dungeon.next(dungeon);
@@ -158,5 +169,11 @@ export class DungeonService {
 				dbDungeon.ref.update(dungeon);
 			}
 		}
+	}
+
+	public getDungeonFromGenerator() {
+		this._http.get(environment.dungeonGeneratorUri).subscribe(dungeon => {
+			console.log('dungeon', dungeon);
+		});
 	}
 }
